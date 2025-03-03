@@ -1,5 +1,8 @@
+## I recommend you don't use this.
+I created this to port some stuff from cglm over to Zig, and there's no guarantee that it's correct.
+
 # zlm
-Zig linear mathemathics library.
+Zig (0.14.0 dev) linear mathemathics library.
 
 Current provides the following types:
 

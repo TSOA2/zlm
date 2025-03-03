@@ -22,7 +22,7 @@ pub fn SpecializeOn(comptime Real: type) type {
                 /// Initializes all values of the vector with the given value.
                 pub fn all(value: Real) Self {
                     var result: Self = undefined;
-                    inline for (@typeInfo(Self).Struct.fields) |fld| {
+                    inline for (@typeInfo(Self).@"struct".fields) |fld| {
                         @field(result, fld.name) = value;
                     }
                     return result;
@@ -31,7 +31,7 @@ pub fn SpecializeOn(comptime Real: type) type {
                 /// adds all components from `a` with the components of `b`.
                 pub fn add(a: Self, b: Self) Self {
                     var result: Self = undefined;
-                    inline for (@typeInfo(Self).Struct.fields) |fld| {
+                    inline for (@typeInfo(Self).@"struct".fields) |fld| {
                         @field(result, fld.name) = @field(a, fld.name) + @field(b, fld.name);
                     }
                     return result;
@@ -40,7 +40,8 @@ pub fn SpecializeOn(comptime Real: type) type {
                 /// subtracts all components from `a` with the components of `b`.
                 pub fn sub(a: Self, b: Self) Self {
                     var result: Self = undefined;
-                    inline for (@typeInfo(Self).Struct.fields) |fld| {
+
+                    inline for (@typeInfo(Self).@"struct".fields) |fld| {
                         @field(result, fld.name) = @field(a, fld.name) - @field(b, fld.name);
                     }
                     return result;
@@ -49,7 +50,7 @@ pub fn SpecializeOn(comptime Real: type) type {
                 /// multiplies all components from `a` with the components of `b`.
                 pub fn mul(a: Self, b: Self) Self {
                     var result: Self = undefined;
-                    inline for (@typeInfo(Self).Struct.fields) |fld| {
+                    inline for (@typeInfo(Self).@"struct".fields) |fld| {
                         @field(result, fld.name) = @field(a, fld.name) * @field(b, fld.name);
                     }
                     return result;
@@ -58,7 +59,7 @@ pub fn SpecializeOn(comptime Real: type) type {
                 /// divides all components from `a` by the components of `b`.
                 pub fn div(a: Self, b: Self) Self {
                     var result: Self = undefined;
-                    inline for (@typeInfo(Self).Struct.fields) |fld| {
+                    inline for (@typeInfo(Self).@"struct".fields) |fld| {
                         @field(result, fld.name) = @field(a, fld.name) / @field(b, fld.name);
                     }
                     return result;
@@ -67,7 +68,7 @@ pub fn SpecializeOn(comptime Real: type) type {
                 /// multiplies all components by a scalar value.
                 pub fn scale(a: Self, b: Real) Self {
                     var result: Self = undefined;
-                    inline for (@typeInfo(Self).Struct.fields) |fld| {
+                    inline for (@typeInfo(Self).@"struct".fields) |fld| {
                         @field(result, fld.name) = @field(a, fld.name) * b;
                     }
                     return result;
@@ -76,7 +77,7 @@ pub fn SpecializeOn(comptime Real: type) type {
                 /// returns the negative of self
                 pub fn neg(self: Self) Self {
                     var result: Self = undefined;
-                    inline for (@typeInfo(Self).Struct.fields) |fld| {
+                    inline for (@typeInfo(Self).@"struct".fields) |fld| {
                         @field(result, fld.name) = - @field(self, fld.name);
                     }
                     return result;
@@ -86,7 +87,7 @@ pub fn SpecializeOn(comptime Real: type) type {
                 /// This is the sum of products of all components.
                 pub fn dot(a: Self, b: Self) Real {
                     var result: Real = 0;
-                    inline for (@typeInfo(Self).Struct.fields) |fld| {
+                    inline for (@typeInfo(Self).@"struct".fields) |fld| {
                         result += @field(a, fld.name) * @field(b, fld.name);
                     }
                     return result;
@@ -627,6 +628,39 @@ pub fn SpecializeOn(comptime Real: type) type {
             /// creates matrix that will scale a homogeneous matrix.
             pub fn createUniformScale(scale: Real) Self {
                 return createScale(scale, scale, scale);
+            }
+
+            /// Creates a rotation matrix from a quaternion.
+            /// The quaternion is represented as a vec4, in xyzw order.
+            pub fn createQuatRot(v: Vec4) Self {
+                var mat = Self.zero;
+                const norm = @sqrt(Vec4.dot(v, v));
+                var s: f32 = 0;
+                if (norm > 0) {
+                    s = 2 / norm;
+                }
+
+                const x = v.x;
+                const y = v.y;
+                const z = v.z;
+                const w = v.w;
+
+                const xx = s*x*x; const xy = s*x*y; const wx = s*w*x;
+                const yy = s*y*y; const yz = s*y*z; const wy = s*w*y;
+                const zz = s*z*z; const xz = s*x*z; const wz = s*w*z;
+
+                mat[0][0] = 1 - yy - zz;
+                mat[1][1] = 1 - xx - zz;
+                mat[2][2] = 1 - xx - yy;
+                mat[0][1] = xy + wz;
+                mat[1][2] = yz + wx;
+                mat[2][0] = xz + wy;
+                mat[1][0] = xy - wz;
+                mat[2][1] = yz - wx;
+                mat[0][2] = xz - wy;
+                mat[3][3] = 1;
+
+                return mat;
             }
 
             /// Creates a non-uniform scaling matrix
