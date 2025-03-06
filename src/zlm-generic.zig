@@ -633,7 +633,6 @@ pub fn SpecializeOn(comptime Real: type) type {
             /// Creates a rotation matrix from a quaternion.
             /// The quaternion is represented as a vec4, in xyzw order.
             pub fn createQuatRot(v: Vec4) Self {
-                var mat = Self.zero;
                 const norm = @sqrt(Vec4.dot(v, v));
                 var s: f32 = 0;
                 if (norm > 0) {
@@ -649,18 +648,14 @@ pub fn SpecializeOn(comptime Real: type) type {
                 const yy = s*y*y; const yz = s*y*z; const wy = s*w*y;
                 const zz = s*z*z; const xz = s*x*z; const wz = s*w*z;
 
-                mat[0][0] = 1 - yy - zz;
-                mat[1][1] = 1 - xx - zz;
-                mat[2][2] = 1 - xx - yy;
-                mat[0][1] = xy + wz;
-                mat[1][2] = yz + wx;
-                mat[2][0] = xz + wy;
-                mat[1][0] = xy - wz;
-                mat[2][1] = yz - wx;
-                mat[0][2] = xz - wy;
-                mat[3][3] = 1;
-
-                return mat;
+                return Self{
+                    .fields = [4][4]Real{
+                        [4]Real{1-yy-zz, xy+wz, xz-wy, 0},
+                        [4]Real{xy-wz, 1-xx-zz, yz+wx, 0},
+                        [4]Real{xz+wy, yz-wx, 1-xx-yy, 0},
+                        [4]Real{0, 0, 0, 1},
+                    },
+                };
             }
 
             /// Creates a non-uniform scaling matrix
